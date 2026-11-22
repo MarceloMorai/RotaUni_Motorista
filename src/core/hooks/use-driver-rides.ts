@@ -2,8 +2,9 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 
 import type { Ride } from '@/core/domain/rides/ride.types';
-import { ridesRepository } from '@/core/services/rides/local-rides.repository';
+import { ridesRepository } from '@/core/services/factories/repository-factory';
 import { useAppState } from '@/core/state/app-provider';
+import { getDataSource } from '@/core/state/data-source';
 
 /**
  * Caronas do motorista logado. Recarrega sempre que a tela ganha foco,
@@ -30,7 +31,7 @@ export function useDriverRides() {
         };
       }
 
-      ridesRepository
+      const load = (background = false) => ridesRepository
         .listByDriver(currentUser.userId)
         .then((loadedRides) => {
           if (!isMounted) return;
@@ -41,11 +42,15 @@ export function useDriverRides() {
           if (isMounted) setError('Não foi possível carregar suas caronas.');
         })
         .finally(() => {
-          if (isMounted) setIsLoading(false);
+          if (isMounted && !background) setIsLoading(false);
         });
+
+      void load();
+      const polling = getDataSource() === 'http' ? setInterval(() => { void load(true); }, 3000) : undefined;
 
       return () => {
         isMounted = false;
+        if (polling !== undefined) clearInterval(polling);
       };
     }, [currentUser]),
   );

@@ -51,3 +51,7 @@ Este protótipo local **não** implementa:
 - avaliação de passageiros pelo motorista.
 
 Não implemente esses itens sem um pedido explícito.
+
+# Escopo atual
+
+O motorista mantém cadastro em formulário único, perfil somente leitura, criação e ciclo de vida de caronas, gerenciamento de solicitações, veículo e avaliação de passageiros. A API pode ser usada em modo HTTP ou o app pode operar com os repositórios locais em modo mock.

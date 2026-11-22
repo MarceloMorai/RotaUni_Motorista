@@ -11,12 +11,9 @@ import {
   type Vehicle,
   type VehicleInput,
 } from '@/core/domain/vehicle/vehicle.types';
-import { sessionRepository } from '@/core/services/auth/local-session.repository';
-import { userAccountRepository } from '@/core/services/auth/user-account.repository';
-import { rideRequestsRepository } from '@/core/services/requests/local-ride-requests.repository';
-import { ridesRepository } from '@/core/services/rides/local-rides.repository';
-import { userRepository } from '@/core/services/user/user.repository';
-import { vehicleRepository } from '@/core/services/vehicle/local-vehicle.repository';
+import { sessionRepository, userAccountRepository, rideRequestsRepository, ridesRepository, userRepository, vehicleRepository } from '@/core/services/factories/repository-factory';
+import { setActiveUserId } from '@/core/services/api/api-client';
+import { getDataSource, getInitialDataSource, loadDataSource, persistDataSource, setDataSource as setRuntimeDataSource, type DataSource } from '@/core/state/data-source';
 
 // O que as telas enxergam da conta: sem hash e salt da senha.
 export type CurrentAccount = Pick<UserAccount, 'id' | 'email' | 'createdAt'>;
@@ -34,6 +31,8 @@ type AppState = {
   updateVehicle: (vehicle: VehicleInput) => Promise<void>;
   logout: () => Promise<void>;
   resetLocalData: () => Promise<void>;
+  dataSource: DataSource;
+  setDataSource: (source: DataSource) => Promise<void>;
 };
 
 const AppContext = createContext<AppState | null>(null);
@@ -43,12 +42,15 @@ export function AppProvider({ children }: PropsWithChildren) {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [currentVehicle, setCurrentVehicle] = useState<Vehicle | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [dataSource, setDataSourceState] = useState<DataSource>(getInitialDataSource);
 
   useEffect(() => {
     async function hydrate() {
+      const source = await loadDataSource(); setDataSourceState(source);
       const session = await sessionRepository.getCurrentSession();
       if (!session) return;
       const account = await userAccountRepository.getById(session.accountId);
+      setActiveUserId(session.accountId);
       const profile = account ? await userRepository.getByUserId(account.id) : null;
 
       if (!account || !profile) {
@@ -84,19 +86,22 @@ export function AppProvider({ children }: PropsWithChildren) {
     const account = await userAccountRepository.createAccount({
       email: normalizeEmail(accountInput.email),
       password: accountInput.password,
+      ...profileInput,
     });
+    setActiveUserId(account.id);
     const createdAt = new Date().toISOString();
-    const profile: UserProfile = { ...normalizeProfileInput(profileInput), userId: account.id, createdAt };
+    const profile: UserProfile = { ...normalizeProfileInput(profileInput), userId: account.id, createdAt, rating: null };
     const vehicle = buildVehicle(account.id, vehicleInput, createdAt);
 
     try {
-      await userRepository.saveProfile(profile);
+      if (getDataSource() !== 'http') await userRepository.saveProfile(profile);
       await vehicleRepository.saveVehicle(vehicle);
       // Depois de criar a conta, o motorista já entra nela.
       await sessionRepository.saveSession({ accountId: account.id });
     } catch (saveError) {
       // Desfaz o cadastro pela metade, senão o email ficaria "já cadastrado" numa conta sem perfil.
       await rollbackRegistration(account.id);
+      await sessionRepository.clearSession();
       throw saveError;
     }
 
@@ -108,10 +113,10 @@ export function AppProvider({ children }: PropsWithChildren) {
   async function login(email: string, password: string): Promise<LoginResult> {
     const account = await userAccountRepository.verifyCredentials(email, password);
     if (!account) return 'invalid-credentials';
+    setActiveUserId(account.id);
     const profile = await userRepository.getByUserId(account.id);
     if (!profile) return 'missing-profile';
     const vehicle = await vehicleRepository.getByUserId(account.id);
-
     await sessionRepository.saveSession({ accountId: account.id });
     setCurrentAccount(toCurrentAccount(account));
     setCurrentUser(profile);
@@ -135,9 +140,15 @@ export function AppProvider({ children }: PropsWithChildren) {
 
   async function logout() {
     await sessionRepository.clearSession();
+    setActiveUserId(null);
     setCurrentAccount(null);
     setCurrentUser(null);
     setCurrentVehicle(null);
+  }
+
+  async function changeDataSource(source: DataSource) {
+    await persistDataSource(source); setRuntimeDataSource(source); setDataSourceState(source);
+    if (!currentAccount) { await sessionRepository.clearSession(); setActiveUserId(null); setCurrentUser(null); setCurrentVehicle(null); }
   }
 
   async function resetLocalData() {
@@ -166,6 +177,8 @@ export function AppProvider({ children }: PropsWithChildren) {
         updateVehicle,
         logout,
         resetLocalData,
+        dataSource,
+        setDataSource: changeDataSource,
       }}>
       {children}
     </AppContext.Provider>
@@ -178,7 +191,7 @@ async function rollbackRegistration(accountId: string) {
     sessionRepository.clearSession(),
     vehicleRepository.deleteByUserId(accountId),
     userRepository.deleteProfile(accountId),
-    userAccountRepository.deleteAccount(accountId),
+    userAccountRepository.deleteAccount?.(accountId) ?? Promise.resolve(),
   ]);
 }
 

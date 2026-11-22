@@ -1,11 +1,12 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { AppButton } from '@/ui/components/app-button/app-button';
 import { Screen } from '@/ui/components/screen/screen';
 import { ThemedText } from '@/ui/components/themed-text/themed-text';
 import { ThemedView } from '@/ui/components/themed-view/themed-view';
+import { useAppState } from '@/core/state/app-provider';
 
 import { styles } from './boas-vindas.styles';
 
@@ -16,6 +17,7 @@ const benefits = [
 ];
 
 export default function BoasVindasScreen() {
+  const { dataSource, setDataSource } = useAppState();
   return (
     <Screen>
       <View style={styles.content}>
@@ -54,6 +56,9 @@ export default function BoasVindasScreen() {
       <View style={styles.actions}>
         <AppButton label="Criar conta de motorista" onPress={() => router.push('/cadastro')} />
         <AppButton variant="outline" label="Já tenho conta" onPress={() => router.push('/login')} />
+        <Pressable style={styles.sourceToggle} onPress={() => void setDataSource(dataSource === 'http' ? 'mock' : 'http')}>
+          <ThemedText style={styles.sourceLabel}>{dataSource === 'http' ? 'Modo: API (HTTP)' : 'Modo: Offline (Mock)'}</ThemedText>
+        </Pressable>
       </View>
     </Screen>
   );

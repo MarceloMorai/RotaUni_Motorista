@@ -17,8 +17,18 @@ import { styles } from './cadastro.styles';
 
 function getRegistrationErrorMessage(error: unknown) {
   if (error instanceof ValidationError) return error.message;
-  if (error instanceof Error && error.message === 'EMAIL_ALREADY_EXISTS') return 'Este email já está cadastrado.';
+  if (error instanceof Error) {
+    if (error.message === 'EMAIL_ALREADY_EXISTS') return 'Este email já está cadastrado.';
+    return error.message || 'Não foi possível criar a conta.';
+  }
   return 'Não foi possível criar a conta.';
+}
+
+function randomMercosurPlate() {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const digits = '0123456789';
+  const pick = (chars: string) => chars[Math.floor(Math.random() * chars.length)];
+  return `${pick(letters)}${pick(letters)}${pick(letters)}${pick(digits)}${pick(letters)}${pick(digits)}${pick(digits)}`;
 }
 
 export default function CadastroScreen() {
@@ -26,6 +36,7 @@ export default function CadastroScreen() {
   const [name, setName] = useState('');
   const [university, setUniversity] = useState('');
   const [campus, setCampus] = useState('');
+  const [course, setCourse] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
@@ -37,15 +48,16 @@ export default function CadastroScreen() {
     setName(testDriver.profile.name);
     setUniversity(testDriver.profile.university);
     setCampus(testDriver.profile.campus);
-    setEmail(testDriver.email);
+    setCourse(testDriver.profile.course ?? '');
+    setEmail(`${testDriver.email.replace('@', `.${Date.now()}@`)}`);
     setPassword(testDriver.password);
     setPasswordConfirmation(testDriver.password);
-    setVehicle(testDriver.vehicle);
+    setVehicle({ ...testDriver.vehicle, plate: randomMercosurPlate() });
     setError('');
   }
 
   async function handleSubmit() {
-    const profile = { name, university, campus };
+    const profile = { name, university, campus, course };
     const validationError = validateRegistration({ profile, email, password, passwordConfirmation, vehicle });
     if (validationError) return setError(validationError);
 
@@ -72,7 +84,7 @@ export default function CadastroScreen() {
         </ThemedText>
       </View>
 
-      {__DEV__ ? (
+      {process.env.EXPO_PUBLIC_ENABLE_TEST_DATA !== 'false' ? (
         <AppButton compact variant="outline" label="Preencher com dados de teste" onPress={fillWithTestData} />
       ) : null}
 
@@ -87,6 +99,7 @@ export default function CadastroScreen() {
             placeholder="seu@email.com"
             keyboardType="email-address"
           />
+          <FormField label="Curso" value={course} onChangeText={setCourse} placeholder="Seu curso" autoCapitalize="words" />
           <FormField
             label="Senha"
             value={password}

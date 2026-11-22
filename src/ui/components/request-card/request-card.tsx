@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import type { ReactNode } from 'react';
 
 import type { RideRequest } from '@/core/domain/requests/ride-request.types';
 
@@ -15,15 +16,19 @@ type RequestCardProps = {
   isBusy: boolean;
   onAccept: () => void;
   onReject: () => void;
+  footer?: ReactNode;
 };
 
 const statusLabel = {
   pending: 'Aguardando resposta',
+  confirmed: 'Aceito',
   accepted: 'Aceito',
   rejected: 'Recusado',
+  completed: 'Finalizada',
+  cancelled: 'Cancelado',
 } as const;
 
-export function RequestCard({ request, canRespond, canAccept, isBusy, onAccept, onReject }: RequestCardProps) {
+export function RequestCard({ request, canRespond, canAccept, isBusy, onAccept, onReject, footer }: RequestCardProps) {
   const { passenger, status } = request;
   const showActions = canRespond && status === 'pending';
 
@@ -39,7 +44,7 @@ export function RequestCard({ request, canRespond, canAccept, isBusy, onAccept, 
             {passenger.course} • {passenger.university}
           </ThemedText>
         </View>
-        <ThemedText style={styles.rating}>★ {passenger.rating.toFixed(1)}</ThemedText>
+        <ThemedText style={styles.rating}>{passenger.rating == null ? 'Sem avaliações' : `★ ${passenger.rating.toFixed(1)}`}</ThemedText>
       </View>
 
       {showActions ? (
@@ -60,6 +65,7 @@ export function RequestCard({ request, canRespond, canAccept, isBusy, onAccept, 
       ) : (
         <ThemedText style={[styles.status, styles[status]]}>{statusLabel[status]}</ThemedText>
       )}
+      {footer}
     </ThemedView>
   );
 }

@@ -27,3 +27,9 @@ Protótipo local-first do motorista. Implementado:
 - notificações, chat, mapas, GPS, pagamentos.
 
 Itens do roadmap só viram requisito quando pedidos explicitamente.
+
+# Roadmap
+
+- Fase 1: backend REST e contratos T1–T9.
+- Fase 2: integração do app Motorista com modo HTTP/mock, veículo, caronas, solicitações e avaliações.
+- Fase 3: integração do app Passageiro.

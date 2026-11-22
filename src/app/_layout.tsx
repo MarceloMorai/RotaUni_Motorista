@@ -6,6 +6,7 @@ import { AppProvider } from '@/core/state/app-provider';
 
 import { SplashOverlay } from '@/ui/components/splash-overlay/splash-overlay';
 import { colors } from '@/ui/theme/theme';
+import { AppShell } from '@/ui/components/app-shell/app-shell';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,7 +29,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <AppProvider>
           <SplashOverlay />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} />
+          <AppShell><Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} /></AppShell>
         </AppProvider>
       </SafeAreaProvider>
     </ThemeProvider>

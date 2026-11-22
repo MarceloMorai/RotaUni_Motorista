@@ -5,6 +5,7 @@ import { StorageKeys } from '@/core/storage/storage.keys';
 import type { RideRequestsRepository } from './ride-requests.repository';
 
 export class LocalRideRequestsRepository implements RideRequestsRepository {
+  private updateOperation: Promise<void> = Promise.resolve();
   async listByRide(rideId: string): Promise<RideRequest[]> {
     const requests = await this.getRequests();
     return requests
@@ -22,16 +23,21 @@ export class LocalRideRequestsRepository implements RideRequestsRepository {
   }
 
   async updateRequest(request: RideRequest): Promise<RideRequest> {
-    const requests = await this.getRequests();
-    await asyncStorageAdapter.set(
-      StorageKeys.rideRequests,
-      requests.map((storedRequest) => (storedRequest.id === request.id ? request : storedRequest)),
-    );
+    // Serializa atualizações para que a finalização de vários passageiros não
+    // faça chamadas concorrentes sobrescreverem umas às outras no storage.
+    this.updateOperation = this.updateOperation.then(async () => {
+      const requests = await this.getRequests();
+      await asyncStorageAdapter.set(
+        StorageKeys.rideRequests,
+        requests.map((storedRequest) => (storedRequest.id === request.id ? request : storedRequest)),
+      );
+    });
+    await this.updateOperation;
     return request;
   }
 
   clearAll(): Promise<void> {
-    return asyncStorageAdapter.remove(StorageKeys.rideRequests);
+    return this.updateOperation.then(() => asyncStorageAdapter.remove(StorageKeys.rideRequests));
   }
 
   private async getRequests(): Promise<RideRequest[]> {

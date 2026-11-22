@@ -2,8 +2,6 @@
 
 App mobile para motoristas universitários oferecerem caronas. É o par do app do passageiro (**RotaUni**) e usa a mesma stack: Expo SDK 57, React Native 0.86, React 19, TypeScript (strict) e Expo Router.
 
-Protótipo **local-first**: os dados ficam no aparelho (AsyncStorage) e as solicitações de passageiros são simuladas. A arquitetura permite trocar a persistência local por uma API REST sem reescrever as telas.
-
 ## Rodando
 
 ```bash
@@ -36,3 +34,11 @@ npx expo-doctor
 - [docs/architecture.md](docs/architecture.md) — arquitetura e contrato de integração com o app do passageiro
 - [docs/roadmap.md](docs/roadmap.md) — próximos passos
 - Guia de construção (comum aos dois apps): `../RotaUni/docs/guia-de-construcao.md`
+
+## Integração
+
+A arquitetura usa `src/core` para domínio e serviços e `src/ui` para telas e componentes.
+
+O modo HTTP usa `.env.local` com `EXPO_PUBLIC_DATA_SOURCE=http` e `EXPO_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1`. Para trabalhar offline, use `EXPO_PUBLIC_DATA_SOURCE=mock`.
+
+Validação local: `npm run typecheck` e `npm run lint`.

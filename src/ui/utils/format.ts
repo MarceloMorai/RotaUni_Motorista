@@ -1,5 +1,5 @@
 export function formatPrice(price: number | null) {
-  return price === null ? 'Gratuita' : formatCurrency(price);
+  return price === null || price === 0 ? 'Gratuita' : formatCurrency(price);
 }
 
 export function formatCurrency(value: number) {

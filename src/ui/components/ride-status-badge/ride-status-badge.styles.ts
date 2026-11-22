@@ -8,6 +8,9 @@ export const styles = StyleSheet.create({
 
 // Uma cor por status: texto forte em cima do fundo clarinho da mesma cor.
 export const statusStyles = StyleSheet.create({
+  open: { color: colors.primary, backgroundColor: colors.primarySoft },
+  in_progress: { color: colors.success, backgroundColor: colors.successSoft },
+  finished: { color: colors.textMuted, backgroundColor: colors.background },
   scheduled: { color: colors.primary, backgroundColor: colors.primarySoft },
   'in-progress': { color: colors.success, backgroundColor: colors.successSoft },
   completed: { color: colors.textMuted, backgroundColor: colors.background },

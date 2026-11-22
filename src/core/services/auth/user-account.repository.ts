@@ -16,7 +16,7 @@ export interface UserAccountRepository {
   getById(id: string): Promise<UserAccount | null>;
   verifyCredentials(email: string, password: string): Promise<UserAccount | null>;
   emailExists(email: string): Promise<boolean>;
-  deleteAccount(id: string): Promise<void>;
+  deleteAccount?(id: string): Promise<void>;
   clearAll(): Promise<void>;
 }
 

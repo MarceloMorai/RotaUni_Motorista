@@ -13,10 +13,10 @@ import {
   type Ride,
 } from '@/core/domain/rides/ride.types';
 import type { Vehicle } from '@/core/domain/vehicle/vehicle.types';
-import { rideRequestsRepository } from '@/core/services/requests/local-ride-requests.repository';
+import { rideRequestsRepository, ridesRepository } from '@/core/services/factories/repository-factory';
 import { createSimulatedRequests } from '@/core/services/requests/simulated-requests.service';
+import { getDataSource } from '@/core/state/data-source';
 
-import { ridesRepository } from './local-rides.repository';
 
 /**
  * Erro de regra de negócio. A mensagem já é escrita para ser exibida ao motorista.
@@ -96,7 +96,7 @@ export async function acceptRequest(driverId: string, rideId: string, requestId:
   const ride = await getOwnedRide(driverId, rideId);
   const request = await getPendingRequest(rideId, requestId);
 
-  if (ride.status !== 'scheduled') {
+  if (ride.status !== 'scheduled' && ride.status !== 'open') {
     throw new RideRuleError('Só é possível aceitar passageiros antes de iniciar a carona.');
   }
   if (getRemainingSeats(ride) === 0) {
@@ -120,7 +120,7 @@ export async function rejectRequest(driverId: string, rideId: string, requestId:
   const ride = await getOwnedRide(driverId, rideId);
   const request = await getPendingRequest(rideId, requestId);
 
-  if (ride.status !== 'scheduled') {
+  if (ride.status !== 'scheduled' && ride.status !== 'open') {
     throw new RideRuleError('Só é possível recusar passageiros antes de iniciar a carona.');
   }
 
@@ -134,9 +134,11 @@ export async function rejectRequest(driverId: string, rideId: string, requestId:
 }
 
 export async function startRide(driverId: string, rideId: string) {
+  console.info(`[RotaUni Motorista] startRide iniciado rideId=${rideId} driverId=${driverId}`);
   const ride = await getOwnedRide(driverId, rideId);
+  console.info(`[RotaUni Motorista] carona carregada status=${ride.status} passageiros=${ride.confirmedPassengers}`);
 
-  if (ride.status !== 'scheduled') {
+  if (ride.status !== 'scheduled' && ride.status !== 'open') {
     throw new RideRuleError('Esta carona não pode ser iniciada.');
   }
   if (ride.confirmedPassengers === 0) {
@@ -145,11 +147,12 @@ export async function startRide(driverId: string, rideId: string) {
 
   const driverRides = await ridesRepository.listByDriver(driverId);
 
-  if (driverRides.some((driverRide) => driverRide.status === 'in-progress')) {
+  if (driverRides.some((driverRide) => driverRide.status === 'in-progress' || driverRide.status === 'in_progress')) {
     throw new RideRuleError('Você já tem uma carona em andamento. Finalize-a primeiro.');
   }
 
   await rejectPendingRequests(rideId);
+  console.info(`[RotaUni Motorista] enviando atualização de início rideId=${rideId}`);
 
   return ridesRepository.updateRide({
     ...ride,
@@ -161,21 +164,34 @@ export async function startRide(driverId: string, rideId: string) {
 export async function finalizeRide(driverId: string, rideId: string) {
   const ride = await getOwnedRide(driverId, rideId);
 
-  if (ride.status !== 'in-progress') {
+  if (ride.status !== 'in-progress' && ride.status !== 'in_progress') {
     throw new RideRuleError('Só é possível finalizar uma carona em andamento.');
   }
 
-  return ridesRepository.updateRide({
+  const finalizedRide = await ridesRepository.updateRide({
     ...ride,
     status: 'completed',
     completedAt: new Date().toISOString(),
   });
+
+  if (getDataSource() === 'mock') {
+    const requests = await rideRequestsRepository.listByRide(rideId);
+    await Promise.all(requests.filter((request) => request.status === 'accepted').map((request) =>
+      rideRequestsRepository.updateRequest({
+        ...request,
+        status: 'completed',
+        historyId: Crypto.randomUUID(),
+      }),
+    ));
+  }
+
+  return finalizedRide;
 }
 
 export async function cancelRide(driverId: string, rideId: string) {
   const ride = await getOwnedRide(driverId, rideId);
 
-  if (ride.status !== 'scheduled') {
+  if (ride.status !== 'scheduled' && ride.status !== 'open') {
     throw new RideRuleError('Só é possível cancelar uma carona que ainda não começou.');
   }
 

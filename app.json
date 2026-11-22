@@ -22,7 +22,7 @@
       "package": "com.rotauni.motorista"
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -41,7 +41,11 @@
       "reactCompiler": true
     },
     "extra": {
-      "router": {}
-    }
+      "router": {},
+      "eas": {
+        "projectId": "4b8c674e-ed49-4da1-90b2-e6bb3422b0bb"
+      }
+    },
+    "owner": "rotauni"
   }
 }

@@ -156,3 +156,9 @@ Hoje o passageiro reserva diretamente (`Booking` com status `confirmed`). No app
 
 1. A reserva do passageiro vira `pending` e espera o motorista aceitar; ou
 2. O motorista configura a carona como "aceite automático".
+
+# Integração da aplicação
+
+O app está organizado em `src/core` (domínio, estado, hooks e serviços) e `src/ui` (rotas, telas e componentes). A factory em `src/core/services/factories/repository-factory.ts` seleciona repositórios locais ou HTTP conforme `EXPO_PUBLIC_DATA_SOURCE`.
+
+O cliente HTTP normaliza a base para `/api/v1`, envia `X-User-Id` a partir da sessão simulada e converte respostas da API para os tipos usados pela UI. O modo `mock` continua disponível offline.

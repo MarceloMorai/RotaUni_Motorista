@@ -5,4 +5,5 @@ export const StorageKeys = {
   currentSession: 'rotauni-driver.current-session',
   rides: 'rotauni-driver.rides',
   rideRequests: 'rotauni-driver.ride-requests',
+  passengerRatings: 'rotauni-driver.passenger-ratings',
 } as const;

@@ -32,5 +32,7 @@ export const styles = StyleSheet.create({
   benefitText: { flex: 1, gap: 2 },
   benefitTitle: { ...typography.subtitle, fontSize: 16, lineHeight: 22 },
   benefitDescription: { ...typography.caption },
-  actions: { gap: spacing.md },
+  actions: { gap: spacing.md, alignItems: 'center' },
+  sourceToggle: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.pill, backgroundColor: colors.background },
+  sourceLabel: { color: colors.textMuted, fontSize: 12 },
 });

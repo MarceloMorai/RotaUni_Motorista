@@ -1,11 +1,13 @@
-export type RideRequestStatus = 'pending' | 'accepted' | 'rejected';
+export type RideRequestStatus = 'pending' | 'confirmed' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
 
 export type RequestPassenger = {
   id: string;
   name: string;
   university: string;
   course: string;
-  rating: number;
+  campus?: string;
+  rating: number | null;
+  historyId?: string | null;
 };
 
 export type RideRequest = {
@@ -15,4 +17,5 @@ export type RideRequest = {
   status: RideRequestStatus;
   createdAt: string;
   respondedAt?: string;
+  historyId?: string | null;
 };

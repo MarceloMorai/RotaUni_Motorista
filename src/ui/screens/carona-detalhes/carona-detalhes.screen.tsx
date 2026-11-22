@@ -10,6 +10,7 @@ import { AppButton } from '@/ui/components/app-button/app-button';
 import { ConfirmDialog } from '@/ui/components/confirm-dialog/confirm-dialog';
 import { InfoRow } from '@/ui/components/info-row/info-row';
 import { RequestCard } from '@/ui/components/request-card/request-card';
+import { PassengerRating } from '@/ui/components/passenger-rating/passenger-rating';
 import { RideStatusBadge } from '@/ui/components/ride-status-badge/ride-status-badge';
 import { Screen } from '@/ui/components/screen/screen';
 import { ThemedText } from '@/ui/components/themed-text/themed-text';
@@ -45,10 +46,13 @@ export default function RideDetailsScreen() {
     );
   }
 
-  const isScheduled = ride.status === 'scheduled';
+  const isScheduled = ride.status === 'scheduled' || ride.status === 'open';
   const remainingSeats = getRemainingSeats(ride);
   const pendingRequests = requests.filter((request) => request.status === 'pending');
-  const visibleRequests = isScheduled ? requests : requests.filter((request) => request.status === 'accepted');
+  const isInProgress = ride.status === 'in_progress' || ride.status === 'in-progress';
+  const visibleRequests = isScheduled
+    ? requests
+    : requests.filter((request) => ['accepted', 'confirmed', 'completed', 'rejected'].includes(request.status));
 
   async function runAndReload(action: () => Promise<unknown>) {
     const result = await action();
@@ -121,6 +125,7 @@ export default function RideDetailsScreen() {
               isBusy={actions.pendingAction !== null}
               onAccept={() => runAndReload(() => actions.acceptRequest(request.id))}
               onReject={() => runAndReload(() => actions.rejectRequest(request.id))}
+              footer={ride.status === 'completed' ? <PassengerRating request={request} /> : null}
             />
           ))
         )}
@@ -141,7 +146,7 @@ export default function RideDetailsScreen() {
             loadingLabel="Iniciando..."
             isLoading={actions.pendingAction === 'start'}
             disabled={actions.pendingAction !== null}
-            onPress={() => runAndReload(actions.startRide)}
+            onPress={() => { console.info('[RotaUni Motorista] Iniciar carona clicado'); void runAndReload(actions.startRide); }}
           />
           <AppButton
             variant="ghost-danger"
@@ -152,7 +157,7 @@ export default function RideDetailsScreen() {
         </View>
       ) : null}
 
-      {ride.status === 'in-progress' ? (
+      {isInProgress ? (
         <AppButton
           label="Finalizar carona"
           loadingLabel="Finalizando..."

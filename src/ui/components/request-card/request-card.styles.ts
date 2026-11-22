@@ -28,6 +28,9 @@ export const styles = StyleSheet.create({
   action: { flex: 1 },
   status: { ...ui.badge, ...ui.badgeText, overflow: 'hidden', color: colors.textMuted, backgroundColor: colors.background },
   accepted: { color: colors.success, backgroundColor: colors.successSoft },
+  confirmed: { color: colors.success, backgroundColor: colors.successSoft },
+  completed: { color: colors.textMuted, backgroundColor: colors.background },
+  cancelled: { color: colors.danger, backgroundColor: colors.dangerSoft },
   rejected: { color: colors.danger, backgroundColor: colors.dangerSoft },
   pending: { color: colors.star, backgroundColor: colors.warningSoft },
 });

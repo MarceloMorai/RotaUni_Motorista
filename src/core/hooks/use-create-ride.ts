@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 
 import type { CreateRideInput } from '@/core/domain/rides/ride.types';
-import { createRide as createRideService, RideRuleError } from '@/core/services/rides/ride-management.service';
+import { createRide as createRideService } from '@/core/services/rides/ride-management.service';
 import { useAppState } from '@/core/state/app-provider';
 
 export function useCreateRide() {
@@ -37,7 +37,7 @@ export function useCreateRide() {
         input,
       });
     } catch (createError) {
-      setError(createError instanceof RideRuleError ? createError.message : 'Não foi possível criar a carona.');
+      setError(createError instanceof Error ? createError.message : 'Não foi possível criar a carona.');
       return null;
     } finally {
       isSavingRef.current = false;

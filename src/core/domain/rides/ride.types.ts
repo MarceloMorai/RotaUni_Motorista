@@ -9,7 +9,7 @@ export type Driver = {
   rating: number | null; // null = motorista ainda sem avaliações
 };
 
-export type RideStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+export type RideStatus = 'open' | 'in_progress' | 'finished' | 'cancelled' | 'scheduled' | 'in-progress' | 'completed';
 
 export type Ride = {
   id: string;
@@ -25,9 +25,9 @@ export type Ride = {
   origin: string;
   status: RideStatus;
   createdAt: string;
-  startedAt?: string;
-  completedAt?: string;
-  cancelledAt?: string;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  cancelledAt?: string | null;
 };
 
 export type CreateRideInput = Pick<Ride, 'destination' | 'departureTime' | 'totalCapacity' | 'price'>;
@@ -40,7 +40,7 @@ export function getRemainingSeats(ride: Ride) {
 }
 
 export function isActiveRide(ride: Ride) {
-  return ride.status === 'scheduled' || ride.status === 'in-progress';
+  return ride.status === 'open' || ride.status === 'in_progress';
 }
 
 export function isValidDepartureTime(value: string) {

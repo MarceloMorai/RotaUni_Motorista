@@ -6,7 +6,6 @@ import {
   cancelRide,
   finalizeRide,
   rejectRequest,
-  RideRuleError,
   startRide,
 } from '@/core/services/rides/ride-management.service';
 import { useAppState } from '@/core/state/app-provider';
@@ -47,7 +46,8 @@ export function useRideActions(rideId: string | undefined) {
     try {
       return await operation(currentUser.userId, rideId);
     } catch (actionError) {
-      setError(actionError instanceof RideRuleError ? actionError.message : fallbackMessages[action]);
+      console.error(`[RotaUni Motorista] ação ${action} falhou`, actionError);
+      setError(actionError instanceof Error ? actionError.message : fallbackMessages[action]);
       return null;
     } finally {
       isRunningRef.current = false;

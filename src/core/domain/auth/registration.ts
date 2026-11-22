@@ -28,7 +28,7 @@ export function normalizeProfileInput(profile: CreateUserInput): CreateUserInput
   return {
     name: profile.name.trim(),
     university: profile.university.trim(),
-    campus: profile.campus.trim(),
+    campus: profile.campus.trim(), course: profile.course?.trim() || 'Não informado',
   };
 }
 

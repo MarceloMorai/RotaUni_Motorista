@@ -16,7 +16,10 @@ export default function HistoryScreen() {
 
   // Regra: o histórico mostra apenas caronas finalizadas, da mais recente para a mais antiga.
   const completedRides = rides
-    .filter((ride) => ride.status === 'completed')
+    .filter((ride) => {
+      const normalizedStatus = String(ride.status).trim().toLowerCase();
+      return normalizedStatus === 'completed' || normalizedStatus === 'finished';
+    })
     .sort((first, second) => (second.completedAt ?? '').localeCompare(first.completedAt ?? ''));
 
   return (

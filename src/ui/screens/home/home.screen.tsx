@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
-import { getRideEarnings, isActiveRide } from '@/core/domain/rides/ride.types';
+import { getRideEarnings } from '@/core/domain/rides/ride.types';
 import { useDriverRides } from '@/core/hooks/use-driver-rides';
 import { useAppState } from '@/core/state/app-provider';
 
@@ -20,9 +20,9 @@ export default function HomeScreen() {
 
   if (!currentUser) return null;
 
-  const activeRides = rides
-    .filter(isActiveRide)
-    // A carona em andamento aparece primeiro.
+  const visibleRides = [...rides]
+    .filter((ride) => ride.status !== 'cancelled')
+    // A carona em andamento aparece primeiro; as finalizadas permanecem no histórico.
     .sort((first, second) => Number(second.status === 'in-progress') - Number(first.status === 'in-progress'));
   const completedRides = rides.filter((ride) => ride.status === 'completed');
   const totalPassengers = completedRides.reduce((total, ride) => total + ride.confirmedPassengers, 0);
@@ -66,7 +66,7 @@ export default function HomeScreen() {
         </View>
       ) : error ? (
         <ThemedText style={styles.error}>{error}</ThemedText>
-      ) : activeRides.length === 0 ? (
+      ) : visibleRides.length === 0 ? (
         <View style={styles.empty}>
           <ThemedText style={styles.emptyText}>
             Você não tem caronas agendadas. Que tal oferecer uma agora?
@@ -74,7 +74,7 @@ export default function HomeScreen() {
         </View>
       ) : (
         <View style={styles.ridesList}>
-          {activeRides.map((ride) => (
+          {visibleRides.map((ride) => (
             <RideCard
               key={ride.id}
               ride={ride}

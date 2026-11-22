@@ -65,3 +65,11 @@ Agendada ──iniciar──→ Em andamento ──finalizar──→ Finalizada
 | Resetar (desenvolvimento) | apaga | apaga | apaga | apaga | apaga |
 
 Não use o reset de desenvolvimento como implementação do logout. O botão de reset só aparece em builds de desenvolvimento (`__DEV__`).
+
+# Regras integradas
+
+- Caronas usam `open`, `in_progress`, `finished` e `cancelled` no domínio do app.
+- Solicitações usam `pending`, `confirmed`, `rejected`, `completed` e `cancelled`.
+- `origin` é derivada do campus do motorista.
+- Veículo é consultado por `GET /drivers/me/vehicle`; cadastro HTTP cria a conta e depois faz upsert do veículo.
+- Ratings sem avaliações são exibidos como `Sem avaliações`.
